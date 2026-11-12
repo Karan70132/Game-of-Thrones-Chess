@@ -3,7 +3,7 @@ databases:
     plan: free
 services:
   - type: web
-    name: rookroom-3d
+    name: game-of-thrones-chess
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
