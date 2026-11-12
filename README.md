@@ -1,5 +1,7 @@
 # Game of Thrones Chess
 
+  **▶ Play it live: https://game-of-thrones-chess.onrender.com** (the first visit may take about a minute to wake up)
+
 **A 3D chess game in the browser, built on top of my C++ object-oriented chess engine, with a neural-network opponent trained on 20 million Stockfish-analysed positions.**
 
 It started as a console chess program written in C++ (classes for every piece, a board, move validation). This project turns it into a full website: a 3D and 2D board, user accounts, four computer opponents up to a deep-searching "Night King", a scroll-driven home page themed on the world of Westeros, and a GPU training pipeline for the opponent's position evaluator.
