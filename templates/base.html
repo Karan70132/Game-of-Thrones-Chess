@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}Game of Thrones · The chess experience{% endblock %}</title>
+<meta name="description" content="{% block description %}A chess experience in 3D: two kings, one board. Challenge Robo, solve the daily puzzle and raise your banner.{% endblock %}">
+<script>(function(){try{var d=document.documentElement,t=JSON.parse(localStorage.getItem('got.theme'));if(t!=='light'&&t!=='dark')t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';d.dataset.theme=t;var b=JSON.parse(localStorage.getItem('got.board'));if(b)d.dataset.board=b}catch(e){}})();</script>
+<link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="/static/fonts/Cinzel.ttf" as="font" type="font/ttf" crossorigin>
+<link rel="stylesheet" href="/static/css/realm.css?v=3">
+<script type="importmap">{"imports":{"three":"/static/vendor/three/three.module.min.js","three/addons/":"/static/vendor/three/addons/"}}</script>
+{% block head %}{% endblock %}
+</head>
+<body class="{% block bodyclass %}{% endblock %}">
+<a class="skip" href="#main">Skip to content</a>
+{% block nav %}{% include "_nav.html" %}{% endblock %}
+{% if messages %}{% for m in messages %}<div class="toast" role="status">{{ m }}</div>{% endfor %}{% endif %}
+{% block body %}{% endblock %}
+<script type="module">import {initChrome} from '/static/js/ui.js'; initChrome(); setTimeout(()=>document.querySelectorAll('.toast').forEach(t=>t.hidden=true),3200);</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

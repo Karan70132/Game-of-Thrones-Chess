@@ -1,0 +1,61 @@
+{% extends "base.html" %}{% load crests %}
+{% block title %}Your banner · Game of Thrones{% endblock %}
+{% block body %}
+<main id="main" class="page">
+  <div class="page-head">
+    <div><h1>Your banner</h1><p class="saying" style="margin:6px 0 0">Choose the house you fight for, an avatar, a title, and a face for your crest.</p></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn btn-gold" href="/play/">Play Robo</a><form method="post" action="/logout/" style="margin:0">{% csrf_token %}<button class="btn" type="submit">Sign out</button></form></div>
+  </div>
+  <div class="profile-grid">
+    <section class="card banner-card" aria-label="Your crest">
+      <div id="crest-preview">{% crest player "Your crest" %}</div>
+      <h2 style="font-size:1.35rem" id="preview-name">{{ user.username }}{% if player.title %} {{ player.title }}{% endif %}</h2>
+      <p class="saying" id="preview-words" style="margin:0">“{{ player.crest.words }}”</p>
+      <p style="margin:0;color:var(--muted)" id="preview-house">{{ player.crest.name }}</p>
+      <div class="record" aria-label="Your record against Robo">
+        <div><b>{{ player.wins }}</b><span>Wins</span></div>
+        <div><b>{{ player.losses }}</b><span>Losses</span></div>
+        <div><b>{{ player.draws }}</b><span>Draws</span></div>
+      </div>
+    </section>
+    <section class="card panel">
+      <form method="post" id="profile-form" novalidate>
+        {% csrf_token %}
+        {% if form.errors %}<ul class="errorlist">{% for field in form %}{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}{% endfor %}</ul>{% endif %}
+        <fieldset class="houses" id="houses">
+          <legend>House</legend>
+          {% for key, h in houses.items %}
+            <label class="house-opt" data-words="{{ h.words }}" data-name="{{ h.name }}" data-field="{{ h.field }}" data-metal="{{ h.metal }}" data-piece="{{ h.piece }}" data-sigil="{{ h.sigil }}">
+              <input type="radio" name="house" value="{{ key }}" {% if form.house.value == key %}checked{% endif %}>
+              {% house_crest key %}
+              <span>{{ h.name }}</span>
+            </label>
+          {% endfor %}
+        </fieldset>
+        <fieldset class="avatars" id="avatars">
+          <legend>Choose an avatar <span class="opt">optional</span></legend>
+          {% for key, name, src in avatars %}
+            <label class="avatar-opt"><input type="radio" name="avatar" value="{{ key }}" {% if form.avatar.value == key %}checked{% endif %}><img src="{{ src }}" alt="" data-src="{{ src }}"><small>{{ name }}</small></label>
+          {% endfor %}
+        </fieldset>
+        <div class="field">
+          <label for="id_title">Title</label>
+          <select id="id_title" name="title">
+            {% for value, label in form.fields.title.choices %}<option value="{{ value }}" {% if form.title.value == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+          </select>
+          <span class="help">Shown after your name on the board.</span>
+        </div>
+        <div class="photo-drop" id="photo-drop">
+          <label for="photo-file" style="font-weight:600">Picture on your crest (optional)</label>
+          <input type="file" id="photo-file" accept="image/png,image/jpeg,image/webp">
+          <span class="help">Use your own picture instead of an avatar. It is cropped to the shield and shrunk before upload.</span>
+          <button class="btn btn-ghost" type="button" id="photo-clear" {% if not player.photo %}hidden{% endif %}>Remove picture</button>
+        </div>
+        <input type="hidden" name="photo" id="id_photo" value="{{ form.photo.value|default:'' }}">
+        <button class="btn btn-gold btn-lg" type="submit">Save banner</button>
+      </form>
+    </section>
+  </div>
+</main>
+{% endblock %}
+{% block scripts %}<script type="module" src="/static/js/profile.js?v=4"></script>{% endblock %}

@@ -1,0 +1,10 @@
+GAME OF THRONES — FULL CHESS PROJECT
+
+Extract into a new folder. Open that extracted folder in Terminal and run:
+
+bash run.sh
+
+Then open http://127.0.0.1:8000/ to see the two kings face off.
+
+To keep accounts from an earlier copy, copy its local.sqlite3 into this folder first.
+Detailed instructions: START-GAME-OF-THRONES.md

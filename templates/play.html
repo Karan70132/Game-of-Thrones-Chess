@@ -1,0 +1,91 @@
+{% extends "base.html" %}{% load crests %}
+{% block title %}Play Robo · Game of Thrones{% endblock %}
+{% block bodyclass %}playroom{% endblock %}
+{% block body %}
+<main id="main" class="play-wrap" data-player="{{ user.pk }}">
+  <div class="evalbar" id="evalbar" role="img" aria-label="Evaluation: level"><i></i><b>0.0</b></div>
+
+  <section class="board-col" aria-label="Board">
+    <div class="player" id="robo-bar">
+      {% robo_crest "Robo's crest" %}
+      <div class="who"><b>Robo</b><span id="rival-name">The Knight Errant</span></div>
+      <div class="taken" id="robo-taken" aria-label="Pieces Robo has captured"></div>
+      <span class="clockish">Black</span>
+    </div>
+    <div class="board-host" id="board-host">
+      <div id="scene" hidden></div>
+      <div id="flat-host"></div>
+    </div>
+    <div class="player" id="you-bar">
+      {% crest player "Your crest" %}
+      <div class="who"><b>{{ user.username }}{% if player.title %} {{ player.title }}{% endif %}</b><span>{{ player.crest.name }}</span></div>
+      <div class="taken" id="you-taken" aria-label="Pieces you have captured"></div>
+      <span class="clockish">White</span>
+    </div>
+    <div class="toolbar">
+      <div class="seg" role="group" aria-label="Board view"><button id="view-3d" type="button" aria-pressed="true">3D</button><button id="view-flat" type="button" aria-pressed="false">Flat</button></div>
+      <button class="btn" id="cam-angle" type="button">Angle view</button>
+      <button class="btn" id="cam-top" type="button">Top view</button>
+      <button class="icon-btn" id="sound" type="button" aria-pressed="true" aria-label="Sound effects"><svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg></button>
+      <button class="btn" id="fullscreen" type="button" aria-pressed="false">Full screen</button>
+      <span class="hint-text" id="gesture">Drag to orbit · scroll to zoom</span>
+    </div>
+  </section>
+
+  <aside class="side">
+    <section class="card dispatch" id="dispatch" aria-live="polite">
+      <h2 id="status">Your move.</h2>
+      <p id="tip">Select a white piece to see where it can go.</p>
+    </section>
+    <section class="card">
+      <h3>Moves</h3>
+      <p class="opening" id="opening" aria-live="polite">Opening: make your first move</p>
+      <div class="moves" id="moves"></div>
+      <div class="actions">
+        <button class="btn" id="hint" type="button">Get a hint</button>
+        <button class="btn" id="explain" type="button" disabled>Explain with LLM</button>
+        <button class="btn" id="undo" type="button" disabled>Take back</button>
+        <button class="btn" id="new" type="button">New game</button>
+        <button class="btn btn-danger full" id="resign" type="button">Resign</button>
+      </div>
+      <p class="coach-text" id="coach" hidden></p>
+    </section>
+    <details class="card settings">
+      <summary><span>Rival &amp; board</span><small id="settings-sum">The Knight Errant</small></summary>
+      <h3>Choose your rival</h3>
+      <div class="rivals" id="rivals">
+        <button class="rival" type="button" data-level="1" aria-pressed="false"><span class="lvl">1</span><span><b>The Squire</b><span>Looks one move ahead. Forgiving.</span></span></button>
+        <button class="rival" type="button" data-level="2" aria-pressed="true"><span class="lvl">2</span><span><b>The Knight Errant</b><span>Looks two moves ahead. A fair duel.</span></span></button>
+        <button class="rival" type="button" data-level="3" aria-pressed="false"><span class="lvl">3</span><span><b>The Old Lord</b><span>Looks three moves ahead. Punishes mistakes.</span></span></button>
+        <button class="rival night" type="button" data-level="4" aria-pressed="false"><span class="lvl">4</span><span><b>The Night King</b><span>Hardest. Opening book and a deep timed search (10+ moves ahead). For strong players.</span></span></button>
+      </div>
+      <p class="model-state" id="model-state">Loading evaluator…</p>
+      <h3 style="margin-top:16px">Board colours</h3>
+      <div class="swatches" id="swatches" role="group" aria-label="Board colours"></div>
+    </details>
+  </aside>
+</main>
+
+<dialog id="promotion" aria-labelledby="promo-title">
+  <h2 id="promo-title">Promote your pawn</h2>
+  <p class="saying">A pawn that reaches the far rank is crowned.</p>
+  <div class="promo" id="promo-choices"></div>
+</dialog>
+<dialog id="confirm-new" aria-labelledby="new-title">
+  <h2 id="new-title">Start a new game?</h2>
+  <p>This clears the current board and move list.</p>
+  <div class="row"><button class="btn btn-gold" id="new-yes" type="button">New game</button><button class="btn" id="new-no" type="button">Keep playing</button></div>
+</dialog>
+<dialog id="confirm-resign" aria-labelledby="resign-title">
+  <h2 id="resign-title">Lay down your king?</h2>
+  <p>Resigning counts as a loss on your banner.</p>
+  <div class="row"><button class="btn btn-danger" id="resign-yes" type="button">Resign</button><button class="btn" id="resign-no" type="button">Fight on</button></div>
+</dialog>
+<dialog id="ending" class="ending" aria-labelledby="end-title">
+  <p class="display gilded" id="end-title">Checkmate</p>
+  <p class="saying" id="end-saying"></p>
+  <div class="record" id="end-record"></div>
+  <div class="row" style="justify-content:center"><button class="btn btn-gold" id="again" type="button">Play again</button><button class="btn" id="review" type="button">Look at the board</button></div>
+</dialog>
+{% endblock %}
+{% block scripts %}<script type="module" src="/static/js/play.js?v=8"></script>{% endblock %}

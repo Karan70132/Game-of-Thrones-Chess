@@ -1,0 +1,48 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Export HD pieces</title>
+<script type="importmap">{"imports":{"three":"/dist/vendor/three/three.module.min.js","three/addons/":"/dist/vendor/three/addons/"}}</script></head>
+<body><p id="out">Sculpting…</p><script type="module">
+// Builds the high-detail pieces from sculpt.js, stretches them to the project's
+// Staunton proportions, and exports dist/pieces-hd.glb (nodes P N B R Q K).
+import * as THREE from 'three';
+import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
+import { GLTFExporter } from './GLTFExporter.js';
+import { buildProceduralSet } from './sculpt.js';
+// target [height, foot radius, stem start, stem end] — only the stem (in sculpt.js units) is stretched,
+// so heads, collars and crowns keep their shape while the pieces reach classic Staunton proportions
+const TARGET = { P: [0.78, 0.27, 0.125, 0.36], N: [1.2, 0.335, 0.11, 0.42], B: [1.28, 0.3, 0.125, 0.48], R: [0.98, 0.32, 0.125, 0.45], Q: [1.38, 0.335, 0.125, 0.58], K: [1.56, 0.35, 0.125, 0.62] };
+const set = buildProceduralSet();
+const scene = new THREE.Scene();
+const report = {};
+for (const k of 'PNBRQK') {
+  let g = set[k.toLowerCase()].clone();
+  g.computeBoundingBox();
+  const bb = g.boundingBox, h = bb.max.y - bb.min.y;
+  const pos = g.attributes.position; let r = 0;
+  for (let i = 0; i < pos.count; i++) if (pos.getY(i) < bb.min.y + h * 0.05) r = Math.max(r, Math.hypot(pos.getX(i), pos.getZ(i)));
+  const [th, tr, y0, y1] = TARGET[k];
+  const s = tr / r;                          // uniform scale so the foot fits the square
+  const stretch = 1 + (th - h * s) / ((y1 - y0) * s);
+  for (let i = 0; i < pos.count; i++) {
+    let y = pos.getY(i);
+    if (y > y1) y = y + (y1 - y0) * (stretch - 1);
+    else if (y > y0) y = y0 + (y - y0) * stretch;
+    pos.setXYZ(i, pos.getX(i) * s, y * s, pos.getZ(i) * s);
+  }
+  pos.needsUpdate = true;
+  report[k] = { stretch: +stretch.toFixed(2) };
+  g.deleteAttribute('normal');
+  g = mergeVertices(g, 1e-5);
+  g.computeVertexNormals();
+  const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial());
+  m.name = k;
+  scene.add(m);
+  report[k].tris = (g.index ? g.index.count : g.attributes.position.count) / 3;
+}
+new GLTFExporter().parse(scene, (buf) => {
+  const bytes = new Uint8Array(buf); let s = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  window.__glb = btoa(s); window.__report = report;
+  document.getElementById('out').textContent = 'Done: ' + JSON.stringify(report) + ' — ' + bytes.length + ' bytes';
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([buf])); a.download = 'pieces-hd.glb'; a.textContent = 'Download pieces-hd.glb'; document.body.append(a);
+}, (e) => { window.__glb = 'ERR ' + e; }, { binary: true });
+</script></body></html>

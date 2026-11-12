@@ -1,0 +1,16 @@
+{% load crests %}<header class="realm-nav{% if overlay_nav %} overlay{% endif %}">
+  <a class="wordmark" href="/" aria-label="Game of Thrones, home"><b>Game of Thrones</b><small>The chess experience</small></a>
+  <nav class="links" aria-label="Main">
+    <a class="keep" href="/play/" {% if request.path == '/play/' %}aria-current="page"{% endif %}>Play</a>
+    <a href="/#puzzle">Puzzle</a>
+    <a href="/original/" {% if request.path == '/original/' %}aria-current="page"{% endif %}>Origins</a>
+    <button class="icon-btn theme-toggle" type="button" aria-label="Switch theme"><svg class="moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg><svg class="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8 6 18M18 6l1.8-1.8"/></svg></button>
+    {% if user.is_authenticated %}
+      <a class="me keep" href="/profile/" title="Your banner">{% crest player %}<span>{{ user.username }}</span></a>
+      <form class="signout" method="post" action="/logout/">{% csrf_token %}<button class="btn btn-ghost" type="submit">Sign out</button></form>
+    {% else %}
+      <a class="keep" href="/login/">Sign in</a>
+      <a class="btn btn-gold keep" href="/signup/">Join</a>
+    {% endif %}
+  </nav>
+</header>

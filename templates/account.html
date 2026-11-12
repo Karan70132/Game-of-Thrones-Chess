@@ -1,0 +1,66 @@
+{% extends "base.html" %}{% load crests %}
+{% block title %}{% if signup %}Join{% else %}Sign in{% endif %} · Game of Thrones{% endblock %}
+{% block bodyclass %}account{% endblock %}
+{% block body %}
+<div id="stage" aria-hidden="true"><img class="fallback" src="/static/kings-render.png" alt=""></div>
+<main id="main" class="auth">
+  <section class="auth-card">
+    {% if signup %}
+      <h1>Claim your seat</h1>
+      <p class="saying">Every house begins with a single move.</p>
+    {% else %}
+      <h1>Return to the board</h1>
+      <p class="saying">The kings have waited for you.</p>
+    {% endif %}
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% if form.non_field_errors %}<ul class="errorlist">{% for e in form.non_field_errors %}<li>{% if signup %}{{ e }}{% else %}That username and password don't match an account. Check both and try again.{% endif %}</li>{% endfor %}</ul>{% endif %}
+      <div class="field">
+        <label for="id_username">Username</label>
+        <input id="id_username" name="username" autocomplete="username" required value="{{ form.username.value|default:'' }}" autofocus>
+        {% if form.username.errors %}<ul class="errorlist">{% for e in form.username.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        {% if signup %}<span class="help">Letters, digits and @ . + - _ only.</span>{% endif %}
+      </div>
+      {% if signup %}
+        <div class="field">
+          <label for="id_password1">Password</label>
+          <input id="id_password1" name="password1" type="password" autocomplete="new-password" required>
+          {% if form.password1.errors %}<ul class="errorlist">{% for e in form.password1.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+          <span class="help">At least 8 characters, not too common, not all numbers.</span>
+        </div>
+        <div class="field">
+          <label for="id_password2">Repeat password</label>
+          <input id="id_password2" name="password2" type="password" autocomplete="new-password" required>
+          {% if form.password2.errors %}<ul class="errorlist">{% for e in form.password2.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+        <fieldset class="houses" id="houses">
+          <legend>Raise a banner</legend>
+          {% for key, h in houses.items %}
+            <label class="house-opt" data-words="{{ h.words }}" data-sigil="{{ h.sigil }}">
+              <input type="radio" name="house" value="{{ key }}" {% if form.house.value == key or not form.house.value and forloop.first %}checked{% endif %}>
+              {% house_crest key %}
+              <span>{{ h.name }}</span>
+            </label>
+          {% endfor %}
+        </fieldset>
+        <p class="house-words saying" id="house-words" aria-live="polite"></p>
+        <fieldset class="avatars" id="avatars">
+          <legend>Choose an avatar <span class="opt">optional</span></legend>
+          {% for key, name, src in avatars %}
+            <label class="avatar-opt"><input type="radio" name="avatar" value="{{ key }}" {% if form.avatar.value == key %}checked{% endif %}><img src="{{ src }}" alt="" data-src="{{ src }}"><small>{{ name }}</small></label>
+          {% endfor %}
+        </fieldset>
+      {% else %}
+        <div class="field">
+          <label for="id_password">Password</label>
+          <input id="id_password" name="password" type="password" autocomplete="current-password" required>
+        </div>
+      {% endif %}
+      {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+      <button class="btn btn-gold btn-lg" type="submit">{% if signup %}Join the game{% else %}Enter the game{% endif %}</button>
+    </form>
+    <p class="alt">{% if signup %}Already have a seat? <a href="/login/">Sign in</a>{% else %}New here? <a href="/signup/">Create an account</a>{% endif %}</p>
+  </section>
+</main>
+{% endblock %}
+{% block scripts %}<script type="module" src="/static/js/account.js?v=4"></script>{% endblock %}

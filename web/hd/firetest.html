@@ -1,0 +1,16 @@
+<!doctype html><html><head><style>body{margin:0;background:#16110c}</style>
+<script type="importmap">{"imports":{"three":"/dist/vendor/three/three.module.min.js","three/addons/":"/dist/vendor/three/addons/"}}</script></head><body>
+<script type="module">
+import * as THREE from 'three';
+const params = new URLSearchParams(location.search);
+const { fireMaterial } = await import('/dist/js/versus.js?' + Date.now());
+const r = new THREE.WebGLRenderer({ antialias: true }); r.setSize(900, 560); document.body.append(r.domElement);
+r.setClearColor('#16110c');
+const s = new THREE.Scene(), cam = new THREE.PerspectiveCamera(32, 900 / 560, 0.1, 100); cam.position.set(0, 1.9, 10); cam.lookAt(0, 1.4, 0);
+const m = new THREE.Mesh(new THREE.PlaneGeometry(6.4, 4.6), fireMaterial()); m.position.set(0, 2.6, -1.4); s.add(m);
+const k = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.7, 2.8, 32), new THREE.MeshBasicMaterial({ color: '#ddd' })); k.position.set(-1.1, 1.4, 0); s.add(k);
+const k2 = k.clone(); k2.material = new THREE.MeshBasicMaterial({ color: '#222' }); k2.position.x = 1.1; s.add(k2);
+const out = [];
+for (const t of [1, 2.5, 4]) { m.material.uniforms.uTime.value = t; r.render(s, cam); out.push(r.domElement.toDataURL()); }
+window.__out = out;
+</script></body></html>

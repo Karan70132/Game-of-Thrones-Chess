@@ -1,0 +1,120 @@
+{% extends "base.html" %}{% load crests %}
+{% block bodyclass %}journey{% endblock %}
+{% block nav %}{% with overlay_nav=True %}{% include "_nav.html" %}{% endwith %}{% endblock %}
+{% block body %}
+<div id="stage" aria-hidden="true"><img class="fallback" src="/static/kings-render.png" alt=""></div>
+<div class="stage-shade" aria-hidden="true"></div>
+<nav class="rail" aria-label="Chapters">
+  <a href="#versus" aria-label="The kings"></a><a href="#board" aria-label="The board"></a><a href="#saga" aria-label="The war on the board"></a>
+  <a href="#court" aria-label="The court"></a><a href="#puzzle" aria-label="Daily puzzle"></a><a href="#lore" aria-label="Lore of the board"></a>
+  <a href="#banner" aria-label="Raise your banner"></a><a href="#enter" aria-label="Play"></a>
+</nav>
+
+<main id="main">
+  <section id="versus" class="chapter versus" data-chapter="0">
+    <div class="side-tag ivory"><b>Ivory</b><span>You, moving first</span></div>
+    <div class="side-tag obsidian"><b>Obsidian</b><span>Robo, thinking ahead</span></div>
+    <h1 class="display title gilded">Game of Thrones</h1>
+    <p class="saying">When you play the game of thrones, you win or you resign.</p>
+    <div class="cta"><a class="btn btn-gold btn-lg" href="/play/">Enter the game</a><a class="btn btn-lg" href="#board">See the board</a></div>
+    <p class="scroll-cue">Scroll</p>
+  </section>
+
+  <section id="board" class="chapter" data-chapter="1">
+    <div class="copy">
+      <p class="chapter-no">Chapter I</p>
+      <h2>Sixty-four squares. Two armies.</h2>
+      <p class="lede">The kings step aside and the battlefield rises. Every rule on this board comes from the original C++ piece classes, translated move for move.</p>
+      <p class="saying">The board remembers every move.</p>
+    </div>
+  </section>
+
+  <section id="saga" class="chapter saga" data-chapter="2">
+    <div class="card saga-card" id="saga-card">
+      <p class="chapter-no">Chapter II: the war on the board</p>
+      <p class="saga-intro">Five turning points from <cite>Game of Thrones</cite>, each replayed as the chess tactic it resembles. Pick a season to watch one, or keep scrolling. <span class="spoiler">Spoilers for all eight seasons.</span></p>
+      <div class="saga-tiles" id="saga-tiles" role="group" aria-label="Choose a scene"></div>
+      <div class="saga-scene" id="saga-scene">
+        <p class="saga-ep" id="saga-ep">Season 1 · Episode 9</p>
+        <h2 class="saga-title" id="saga-title">Baelor</h2>
+        <p class="saga-phrase" id="saga-phrase"></p>
+        <p class="saga-story" id="saga-story"></p>
+        <div class="saga-chess">
+          <p class="saga-idea"><span>On the board:</span> <b id="saga-idea">The pin</b></p>
+          <p class="saga-lesson" id="saga-lesson"></p>
+          <p class="saga-moves" id="saga-moves" aria-live="polite"></p>
+          <p class="saga-note" id="saga-note"></p>
+        </div>
+      </div>
+      <div class="saga-controls">
+        <button class="btn" id="saga-back" type="button" aria-label="Previous move">‹ Back</button>
+        <button class="btn btn-gold" id="saga-play" type="button" aria-pressed="false">Play</button>
+        <button class="btn" id="saga-next" type="button" aria-label="Next move">Next ›</button>
+        <button class="saga-voice" id="saga-voice" type="button" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg><span>Voice &amp; sound: on</span></button>
+      </div>
+      <div id="saga-flat" class="saga-flat" hidden></div>
+      <p class="saga-foot">Four of these five come from a ninth episode, where the series kept its biggest moves.</p>
+    </div>
+  </section>
+
+  <section id="court" class="chapter court" data-chapter="3">
+    <div class="copy">
+      <p class="chapter-no">Chapter III: the court</p>
+      <h2 id="court-title">The King</h2>
+      <p class="lede" id="court-text">The heart of the kingdom. One square in any direction. Lose him and the war is over.</p>
+      <div class="picker" role="group" aria-label="Choose a piece">
+        <button type="button" data-piece="K" aria-pressed="true">King</button><button type="button" data-piece="Q" aria-pressed="false">Queen</button>
+        <button type="button" data-piece="R" aria-pressed="false">Rook</button><button type="button" data-piece="B" aria-pressed="false">Bishop</button>
+        <button type="button" data-piece="N" aria-pressed="false">Knight</button><button type="button" data-piece="P" aria-pressed="false">Pawn</button>
+      </div>
+      <div class="diagram" id="diagram" aria-label="Where the piece can move"></div>
+    </div>
+  </section>
+
+  <section id="puzzle" class="chapter solid-zone" data-chapter="4">
+    <div class="wide puzzle-grid">
+      <div class="puzzle-board" id="puzzle-board"></div>
+      <div class="copy">
+        <p class="chapter-no">Chapter IV: the daily puzzle</p>
+        <h2 id="puzzle-title">Mate in one</h2>
+        <p class="lede">White to move. Find the move that ends the war at once. Click a piece, then its square, or drag it.</p>
+        <p class="puzzle-status" id="puzzle-status" role="status" aria-live="polite"></p>
+        <div class="cta" style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" id="puzzle-reset" type="button">Try again</button><button class="btn" id="puzzle-next" type="button">Another puzzle</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="lore" class="chapter solid-zone" data-chapter="5">
+    <div class="wide">
+      <p class="chapter-no">Chapter V: lore of the board</p>
+      <h2 style="margin:10px 0 22px">Numbers worth knowing</h2>
+      <div class="facts">
+        <div class="card fact"><b>400</b><p>Positions possible after one move by each side.</p></div>
+        <div class="card fact"><b>197,281</b><p>Positions after four half-moves. The rules from your C++ classes reach every one of them.</p></div>
+        <div class="card fact"><b>10<sup>120</sup></b><p>Claude Shannon’s estimate of possible chess games, far more than atoms in the observable universe.</p></div>
+        <div class="card fact"><b>1997</b><p>IBM’s Deep Blue beats world champion Garry Kasparov in a six-game match.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="banner" class="chapter solid-zone" data-chapter="6">
+    <div class="wide">
+      <div class="card panel quiz" id="quiz">
+        <p class="chapter-no">Chapter VI: raise your banner</p>
+        <h2 style="margin:8px 0 18px">Which house would you lead?</h2>
+        <div id="quiz-body"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="enter" class="chapter finale" data-chapter="7">
+    <p class="chapter-no">The last chapter is yours</p>
+    <h2 class="display gilded" style="font-size:clamp(2.2rem,5vw,4rem)">The next move is yours</h2>
+    <p class="saying">Take the ivory pieces. Robo is waiting.</p>
+    <div class="cta"><a class="btn btn-gold btn-lg" href="/play/">Enter the game</a>{% if not user.is_authenticated %}<a class="btn btn-lg" href="/signup/">Create an account</a>{% endif %}<a class="btn btn-lg btn-ghost" href="/original/">See the C++ origins</a></div>
+  </section>
+</main>
+<footer class="site-foot"><span>An independent fan-made chess project. Not affiliated with HBO or the <cite>Game of Thrones</cite> series; episode titles are used for reference only.</span><span>Rules from the original C++ OOP edition.</span></footer>
+{{ houses|json_script:"houses-data" }}
+{% endblock %}
+{% block scripts %}<script type="module" src="/static/js/home.js?v=6"></script>{% endblock %}

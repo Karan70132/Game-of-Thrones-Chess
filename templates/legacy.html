@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}The C++ origins · Game of Thrones{% endblock %}
+{% block body %}
+<main id="main" class="page">
+  <div class="page-head">
+    <div><h1>The C++ origins</h1><p class="saying" style="margin:6px 0 0">Before the kingdom, there was a console. These nine files are where every rule began.</p></div>
+    <a class="btn btn-gold" href="/play/">Play Robo</a>
+  </div>
+  <div class="archive-grid">
+    <section class="card exhibit" aria-label="Sculpture of {{ name }}">
+      <div class="stage" id="gallery-scene" data-file="{{ name }}"><img src="/static/origins/{{ name }}.webp" alt="Sculpture representing {{ name }}" id="gallery-fallback"></div>
+      <div class="controls">
+        <p class="chapter-no">The architecture, made tangible</p>
+        <h2 id="sculpture-title" class="sculpture-title">{{ name }}</h2>
+        <p id="sculpture-description" class="sculpture-text"></p>
+        <div class="sculpture-actions"><button class="btn" id="sculpture-spin" type="button" hidden>Pause rotation</button><button class="btn" id="sculpture-reset" type="button" hidden>Reset view</button></div>
+        <span class="help" id="sculpture-help">Each source file has its own sculpture. Pick another file to change the exhibit.</span>
+      </div>
+      <nav class="origin-thumbs" aria-label="All nine sculptures">{% for file in files %}<a href="?file={{ file }}" {% if file == name %}aria-current="page"{% endif %} title="{{ file }}"><img src="/static/origins/{{ file }}.webp" alt="{{ file }}" loading="lazy"></a>{% endfor %}</nav>
+    </section>
+    <section class="card panel">
+      <nav class="files" aria-label="Source files">{% for file in files %}<a href="?file={{ file }}" {% if file == name %}aria-current="page"{% endif %}>{{ file }}</a>{% endfor %}</nav>
+      <h2 style="font: 700 1rem ui-monospace, monospace; margin: 0 0 10px">{{ name }}</h2>
+      <pre class="code" id="code"><code>{{ source }}</code></pre>
+    </section>
+  </div>
+</main>
+{% endblock %}
+{% block scripts %}<script type="module" src="/static/js/archive.js?v=4"></script>{% endblock %}

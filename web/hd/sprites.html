@@ -1,0 +1,70 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;background:#7a9a58}canvas{display:inline-block}</style>
+<script type="importmap">{"imports":{"three":"/dist/vendor/three/three.module.min.js","three/addons/":"/dist/vendor/three/addons/"}}</script></head>
+<body><script type="module">
+// Renders the flat-board piece images (dist/img/pieces/{w,b}{K,Q,R,B,N,P}.webp) from the HD 3D set.
+// Run through web/hd/render_sprites.py, which saves window.__sprites.
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { pieceMaterials } from '/dist/js/realm3d.js';
+const S = 512, SS = 2; // final size, supersampling
+const r = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+r.setSize(S * SS, S * SS); r.setPixelRatio(1); r.setClearColor(0, 0);
+r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.05;
+const scene = new THREE.Scene();
+const pm = new THREE.PMREMGenerator(r); scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.45;
+const key = new THREE.DirectionalLight('#fff0dc', 3.4); key.position.set(-4, 6, 6); scene.add(key);
+const fill = new THREE.DirectionalLight('#dfe8ff', 0.9); fill.position.set(5, 2, 4); scene.add(fill);
+const rim = new THREE.DirectionalLight('#ffffff', 3.2); rim.position.set(3, 4, -6); scene.add(rim);
+const rim2 = new THREE.DirectionalLight('#ffd9a0', 1.6); rim2.position.set(-5, 3, -4); scene.add(rim2);
+scene.add(new THREE.HemisphereLight('#fff3e0', '#3a2e22', 0.5));
+const g = await new GLTFLoader().loadAsync('/dist/pieces-hd.glb');
+const mats = pieceMaterials();
+// one camera for every piece so their sizes stay true to each other; pawns get a small boost for legibility
+const BOOST = { K: 1, Q: 1.02, R: 1.08, B: 1.04, N: 1.06, P: 1.16 };
+const cam = new THREE.PerspectiveCamera(20, 1, 0.1, 100);
+const H = 1.0; // world height that fills the frame
+const out = {};
+const box = new THREE.Box3();
+let kingH = 1;
+{ const k = g.scene.getObjectByName('K').geometry; k.computeBoundingBox(); kingH = k.boundingBox.max.y; }
+for (const side of ['w', 'b']) for (const k of 'KQRBNP') {
+  const geo = g.scene.getObjectByName(k).geometry;
+  const m = new THREE.Mesh(geo, mats[side]);
+  m.scale.setScalar((0.86 / kingH) * BOOST[k]);
+  const KN = Number(new URLSearchParams(location.search).get('kn') ?? Math.PI + 0.45);
+  if (k === 'N') m.rotation.y = KN; // head looks left, slightly toward us
+  else m.rotation.y = 0.5;
+  m.scale.x *= 1.1; m.scale.z *= 1.1; // a touch stockier: reads better at board size
+  scene.add(m);
+  const elev = 0.36, d = 4.2;
+  cam.position.set(0, 0.5 + Math.sin(elev) * d, Math.cos(elev) * d); cam.lookAt(0, 0.45, 0);
+  cam.fov = 2 * Math.atan(0.5 / d) * 180 / Math.PI; cam.updateProjectionMatrix();
+  r.render(scene, cam);
+  scene.remove(m);
+  out[side + k] = finish(r.domElement, side);
+}
+function finish(src, side) {
+  // downsample, then add a crisp outline and a soft contact shadow so pieces read on any square colour
+  const c = document.createElement('canvas'); c.width = c.height = S; const x = c.getContext('2d');
+  const body = document.createElement('canvas'); body.width = body.height = S; const bx = body.getContext('2d');
+  bx.imageSmoothingQuality = 'high'; bx.drawImage(src, 0, 0, S, S);
+  const sil = document.createElement('canvas'); sil.width = sil.height = S; const sx = sil.getContext('2d');
+  sx.drawImage(body, 0, 0); sx.globalCompositeOperation = 'source-in'; sx.fillStyle = side === 'w' ? '#2b2118' : '#050507'; sx.fillRect(0, 0, S, S);
+  // contact shadow: an ellipse under the base
+  const a = bx.getImageData(0, 0, S, S).data; let bottom = 0, left = S, right = 0;
+  for (let y = 0; y < S; y++) for (let xx = 0; xx < S; xx++) if (a[(y * S + xx) * 4 + 3] > 40) { bottom = Math.max(bottom, y); }
+  for (let xx = 0; xx < S; xx++) for (let y = bottom - 6; y <= bottom; y++) if (a[(y * S + xx) * 4 + 3] > 40) { left = Math.min(left, xx); right = Math.max(right, xx); }
+  const cx = (left + right) / 2, rw = (right - left) * 0.62;
+  const grad = x.createRadialGradient(cx, bottom - 4, 0, cx, bottom - 4, rw);
+  grad.addColorStop(0, 'rgba(0,0,0,.42)'); grad.addColorStop(0.6, 'rgba(0,0,0,.16)'); grad.addColorStop(1, 'rgba(0,0,0,0)');
+  x.save(); x.translate(cx, bottom - 4); x.scale(1, 0.24); x.translate(-cx, -(bottom - 4)); x.fillStyle = grad; x.fillRect(0, 0, S, S); x.restore();
+  const R = 3.2; // outline thickness in px at 512
+  x.globalAlpha = side === 'w' ? 0.85 : 0.75;
+  for (let k = 0; k < 24; k++) { const t = (k / 24) * Math.PI * 2; x.drawImage(sil, Math.cos(t) * R, Math.sin(t) * R); }
+  x.globalAlpha = 1; x.drawImage(body, 0, 0);
+  document.body.append(c);
+  return c.toDataURL('image/webp', 0.94);
+}
+window.__sprites = out;
+</script></body></html>

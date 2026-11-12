@@ -1,0 +1,39 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;background:#16110c}canvas{display:block}</style>
+<script>let FAKE = 0; performance.now = () => FAKE; window.__setNow = (t) => { FAKE = t; };</script>
+<script type="importmap">{"imports":{"three":"/static/vendor/three/three.module.min.js","three/addons/":"/static/vendor/three/addons/"}}</script></head>
+<body><div id="host" style="width:900px;height:700px"></div><script type="module">
+// Test harness (not shipped): drives the 3D rig with a fake clock so effects can be captured frame by frame.
+import { THREE, makeRenderer, studio, pieceMaterials, pieceGeometries } from '/static/js/realm3d.js';
+import { buildBoard } from '/static/js/board3d.js';
+import { parseFen } from '/static/js/notation.js';
+import { start, legal, apply, check } from '/static/engine.mjs';
+const host = document.getElementById('host');
+const geos = await pieceGeometries(), mats = pieceMaterials();
+const renderer = makeRenderer(host, { quality: 1 }); renderer.setSize(900, 700, false);
+const scene = new THREE.Scene(); studio(scene, renderer);
+const grain = await new THREE.TextureLoader().loadAsync('/static/grain.jpg'); grain.colorSpace = THREE.SRGBColorSpace; grain.wrapS = grain.wrapT = THREE.RepeatWrapping;
+const rig = buildBoard({ geos, mats, grain }); scene.add(rig.group); rig.setPixelRatio(1);
+const camera = new THREE.PerspectiveCamera(34, 900 / 700, 0.1, 100);
+camera.position.set(0, 9.2, 8.2); camera.lookAt(0, 0, 0.6);
+const sq = (u) => (u.charCodeAt(0) - 97) + (Number(u[1]) - 1) * 8;
+let now = 1000;
+function advance(ms) { const end = now + ms; while (now < end) { now += 16; window.__setNow(now); rig.tick(now); } }
+function shot() { renderer.render(scene, camera); return renderer.domElement.toDataURL('image/jpeg', 0.85); }
+function play(s, u) { const m = legal(s).find((x) => x[0] === sq(u) && x[1] === sq(u.slice(2)) && (!u[4] || x[2] === u[4].toUpperCase())); const n = apply(s, m); const c = check(n), mate = c && !legal(n).length; return [n, { last: [m[0], m[1]], check: c ? n.b.indexOf(n.t === 'W' ? 'K' : 'k') : null, mate, animate: true }]; }
+const out = {};
+window.__setNow(now);
+// 1. armies rain onto the board
+let s = start(); rig.update(s.b, {}); rig.rain(); advance(16); out.rain1 = (advance(380), shot()); out.rain2 = (advance(700), shot()); advance(2000);
+// 2. a capture: knight takes the queen, mid-flight and at impact
+s = parseFen('q3k3/pp1ppppp/8/1N6/8/8/5PPP/6K1 w - - 0 1'); rig.update(s.b, {}); advance(100);
+let [n, o] = play(s, 'b5c7'); rig.update(n.b, o); out.jump = (advance(300), shot()); advance(1500);
+s = n; [n, o] = play(s, 'e8d8'); rig.update(n.b, o); advance(1500); s = n;
+[n, o] = play(s, 'c7a8'); rig.update(n.b, o); out.cap1 = (advance(560), shot()); out.cap2 = (advance(180), shot()); advance(2500);
+// 3. promotion
+s = parseFen('8/3q1P1k/8/8/8/8/8/2K5 w - - 0 1'); rig.update(s.b, {}); advance(100);
+[n, o] = play(s, 'f7f8n'); rig.update(n.b, o); out.promo = (advance(700), shot()); advance(2500);
+// 4. smothered mate: the king topples
+s = parseFen('6rk/6pp/7N/8/8/8/8/6K1 w - - 0 1'); rig.update(s.b, {}); advance(100);
+[n, o] = play(s, 'h6f7'); rig.update(n.b, o); out.mate1 = (advance(1100), shot()); out.mate2 = (advance(2500), shot());
+window.__out = out;
+</script></body></html>

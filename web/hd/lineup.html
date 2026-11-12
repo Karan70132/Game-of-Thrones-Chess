@@ -1,0 +1,21 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;background:#1a1612}</style>
+<script type="importmap">{"imports":{"three":"/dist/vendor/three/three.module.min.js","three/addons/":"/dist/vendor/three/addons/"}}</script></head>
+<body><script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+const file = new URLSearchParams(location.search).get('f') || 'pieces-hd.glb';
+const r = new THREE.WebGLRenderer({ antialias: true }); r.setSize(1400, 560); r.setPixelRatio(1); document.body.append(r.domElement);
+r.toneMapping = THREE.ACESFilmicToneMapping; r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap;
+const s = new THREE.Scene(); s.background = new THREE.Color('#2a221b');
+const pm = new THREE.PMREMGenerator(r); s.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture; s.environmentIntensity = 0.6;
+const key = new THREE.DirectionalLight('#ffe3bd', 3); key.position.set(-3, 6, 5); key.castShadow = true; key.shadow.mapSize.set(2048, 2048); Object.assign(key.shadow.camera, { left: -6, right: 6, top: 4, bottom: -4 }); s.add(key);
+s.add(new THREE.HemisphereLight('#fff3e0', '#2a2218', 0.8)); const rim = new THREE.DirectionalLight('#a9cdf0', 2); rim.position.set(5, 4, -6); s.add(rim);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), new THREE.MeshStandardMaterial({ color: '#4a3424', roughness: .6 })); floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; s.add(floor);
+const g = await new GLTFLoader().loadAsync('/dist/' + file);
+const w = new THREE.MeshPhysicalMaterial({ color: '#f0e6d1', roughness: .32, clearcoat: .65, clearcoatRoughness: .18 });
+const b = new THREE.MeshPhysicalMaterial({ color: '#24262e', roughness: .23, metalness: .15, clearcoat: 1, clearcoatRoughness: .06 });
+[...'PNBRQK'].forEach((k, i) => { for (const [c, z] of [[w, 0.6], [b, -0.6]]) { const m = new THREE.Mesh(g.scene.getObjectByName(k).geometry, c); m.castShadow = true; m.position.set((i - 2.5) * 1.05 + (z < 0 ? .3 : 0), 0, z); if (k === 'N') m.rotation.y = z > 0 ? -1.2 : 1.9; s.add(m); } });
+const cam = new THREE.PerspectiveCamera(28, 1400 / 560, .1, 100); cam.position.set(0, 2.6, 9.5); cam.lookAt(0, .75, 0);
+r.render(s, cam); window.__done = 1;
+</script></body></html>
