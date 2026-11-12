@@ -124,4 +124,4 @@ Fonts: Cinzel, Cinzel Decorative, Cormorant Garamond, Manrope (SIL Open Font Lic
 
 ## Author
 
-**Karan Reddy**: the original C++ OOP chess engine, and this web version built on it.
+**Karan Ragireddy**: the original C++ OOP chess engine, and this web version built on it.
